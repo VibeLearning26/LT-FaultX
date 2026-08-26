@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-ink-950 text-brand-50/90 antialiased;
+  /* faint scan-line grid for the control-room feel */
+  background-image:
+    radial-gradient(circle at 50% -20%, rgba(0, 200, 83, 0.08), transparent 55%),
+    linear-gradient(to bottom, rgba(0, 200, 83, 0.04) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 200, 83, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+@layer components {
+  /* Reusable control-room card */
+  .card {
+    @apply rounded-xl border border-brand-500/15 bg-ink-900/70 backdrop-blur
+           shadow-card;
+  }
+
+  /* Primary green action button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           bg-brand-500 px-4 py-2 font-semibold text-ink-950
+           transition hover:bg-brand-400 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-brand-300
+           disabled:opacity-50;
+  }
+
+  /* Ghost / outline button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg
+           border border-brand-500/30 px-4 py-2 font-medium text-brand-100
+           transition hover:border-brand-400 hover:bg-brand-500/10
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300;
+  }
+
+  /* Status pill — always pairs color with a text label (accessibility rule) */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5
+           text-xs font-semibold uppercase tracking-wide;
+  }
+  .pill-normal {
+    @apply border-status-normal/40 bg-status-normal/10 text-status-normal;
+  }
+  .pill-fault {
+    @apply border-status-fault/40 bg-status-fault/10 text-status-fault;
+  }
+  .pill-maint {
+    @apply border-status-maint/40 bg-status-maint/10 text-status-maint;
+  }
+  .pill-info {
+    @apply border-status-info/40 bg-status-info/10 text-status-info;
+  }
+  .pill-unknown {
+    @apply border-status-unknown/40 bg-status-unknown/10 text-status-unknown;
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Leaflet marker pulse (used by LiveMap divIcons) */
+@keyframes ltfxPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Leaflet popup — match the dark control-room theme */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0f1712;
+  color: #e9fff2;
+  border: 1px solid rgba(0, 200, 83, 0.25);
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: #93ffbf;
+}
+.leaflet-container {
+  font-family: var(--font-sans);
+}
