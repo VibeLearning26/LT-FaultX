@@ -1,5 +1,5 @@
 import RoleShell from "@/components/RoleShell";
-import { getSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 
 const nav = [
   { label: "Home", href: "/user" },
@@ -10,13 +10,13 @@ const nav = [
 ];
 
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const user = await getCurrentUser();
   return (
     <RoleShell
       roleLabel="Citizen"
       accent="bg-status-normal"
       nav={nav}
-      userName={session?.name ?? "Citizen"}
+      userName={user?.name ?? "Citizen"}
     >
       {children}
     </RoleShell>

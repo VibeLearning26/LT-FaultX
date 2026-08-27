@@ -1,0 +1,7 @@
+# Backend-local ignores (root .gitignore also covers .env)
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/

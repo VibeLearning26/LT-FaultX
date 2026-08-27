@@ -1,5 +1,6 @@
 import RoleShell from "@/components/RoleShell";
-import { getSession } from "@/lib/session";
+import ModeToggle from "@/components/ModeToggle";
+import { getCurrentUser } from "@/lib/auth";
 
 const nav = [
   { label: "Overview", href: "/admin/dashboard" },
@@ -16,13 +17,14 @@ const nav = [
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const user = await getCurrentUser();
   return (
     <RoleShell
       roleLabel="Administrator"
       accent="bg-status-info"
       nav={nav}
-      userName={session?.name ?? "Administrator"}
+      userName={user?.name ?? "Administrator"}
+      headerExtra={<ModeToggle />}
     >
       {children}
     </RoleShell>

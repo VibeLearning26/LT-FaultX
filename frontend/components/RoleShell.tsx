@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export interface NavItem {
   label: string;
@@ -13,19 +14,22 @@ export default function RoleShell({
   accent,
   nav,
   userName,
+  headerExtra,
   children,
 }: {
   roleLabel: string;
   accent: string;
   nav: NavItem[];
   userName: string;
+  headerExtra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
   }
@@ -83,9 +87,12 @@ export default function RoleShell({
             <span className={`h-2 w-2 rounded-full ${accent} animate-pulse-maint`} />
             <span className="text-sm text-brand-100/70">{roleLabel} console</span>
           </div>
-          <button onClick={logout} className="btn-ghost text-xs md:hidden">
-            Sign out
-          </button>
+          <div className="flex items-center gap-4">
+            {headerExtra}
+            <button onClick={logout} className="btn-ghost text-xs md:hidden">
+              Sign out
+            </button>
+          </div>
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>

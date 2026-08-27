@@ -7,44 +7,77 @@
 Detect → Localize → Isolate → Alert → Monitor → Verify → Restore, across a distributed set of LT monitoring nodes, with a live Kerala map, citizen reporting, maintenance management, and role-based dashboards.
 
 ## Current status
-This repository currently contains the **Next.js frontend** with a mock API layer. The dedicated FastAPI backend, MQTT/ESP32 simulator, real fault engine, WebSocket, and notifications are planned (see roadmap).
+The repo now has three parts: the **Next.js frontend**, a **FastAPI backend**
+(telemetry validation, relay lifecycle, WebSocket), and **Supabase** SQL
+(schema + RLS + storage + seeds). Authentication runs on **Supabase Auth**. The
+app supports both **SIMULATION** (no backend/hardware needed) and **LIVE
+HARDWARE** modes, switchable from the admin console. MQTT/ESP32 remain simulated.
 
 ### Implemented
 - Green/black control-room UI (Next.js 15 · React 19 · TypeScript · Tailwind)
-- Role-based access — **Citizen / Operator / Admin** — with route guards
-- Interactive **Kerala map** (Leaflet + OpenStreetMap/CARTO): masked to Kerala, heat-style density of all 1,418 Kerala pincodes, LT nodes, line + estimated fault segment, fault radius, operators, citizen-report markers, fullscreen expand with global context
-- **Pincode lookup** — real locality resolution (India Post API) + coordinates (GeoNames)
-- **Citizen outage reporting** that persists and appears live on the map
-- Maintenance **SLA countdown timers**, analytics, audit log, configuration, AI assistant shells
+- **Supabase Auth** with `profiles.role` (citizen/operator/admin) + RLS-enforced permissions
+- Role-based route guards backed by the Supabase session
+- **SIMULATION ↔ LIVE HARDWARE** data-mode toggle (cookie-driven)
+- FastAPI backend: validated telemetry ingest → Supabase → WebSocket broadcast; relay command PENDING→SENT→ACKED lifecycle (no false "success" before ESP32 ACK); config push; audit logging
+- Supabase schema for devices, locations, telemetry, faults, relay commands, status, config, outage reports, maintenance, notifications, audit logs, firmware + Kerala pincodes
+- Interactive **Kerala map** (Leaflet): masked to Kerala, density of all 1,418 pincodes, LT nodes, line + estimated fault segment, operators, citizen-report markers
+- **Pincode lookup** (India Post + GeoNames) and **citizen outage reporting** (Supabase-backed in live mode; in-memory in simulation)
 
 ### Roadmap (not yet built)
-FastAPI backend · PostgreSQL · MQTT + ESP32 simulator · fault detection/localization engine · WebSocket live updates · NotificationService (SMS/call/email mocks) · Docker Compose · tests.
+Real MQTT broker + ESP32 firmware/OTA/USB flashing · full Developer Console UI ·
+fault detection/localization engine · Supabase Realtime for reports/notifications · Docker Compose · tests.
 
 ## Getting started
+
+### Frontend
 ```bash
 cd frontend
+cp .env.local.example .env.local   # add NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm install
-npm run dev        # http://localhost:3000  (or: npx next dev -p 3001)
+npm run dev                        # http://localhost:3000
 ```
 
-### Demo accounts (development only)
+### Backend (FastAPI)
+```bash
+cd backend
+python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash
+pip install -r requirements.txt
+cp .env.example .env               # add the real service-role secret
+uvicorn app.main:app --reload --port 8000
+```
+
+### Supabase
+Run the SQL in `supabase/migrations/` then `supabase/seed/` (see
+`supabase/README.md`), then create demo users with `backend/scripts/seed_users.py`.
+
+### Demo accounts (created by the seed script)
 | Role | Email | Password |
 |------|-------|----------|
-| Citizen | `user@demo.local` | `Demo@User123` |
+| Citizen | `citizen@demo.local` | `Demo@User123` |
 | Operator | `operator@demo.local` | `Demo@Operator123` |
 | Admin | `admin@demo.local` | `Demo@Admin123` |
 
-> These are throwaway demo credentials for local development. Do not use in production; they will be replaced by hashed passwords + JWT when the backend lands.
+> Throwaway demo credentials for local development only.
 
 ## Project structure
 ```
 frontend/
-  app/            # App Router pages: /, /login, /user/*, /operator/*, /admin/*, /api/*
-  components/     # LiveMap, RoleShell, ChatUI, MaintenanceTimer, ArchitectureFlow, ui
-  lib/            # demo data, session, kerala geometry
-    server/       # server-only data (Kerala pincodes) + in-memory report store
-  middleware.ts   # role-based route protection
+  app/            # App Router: /, /login, /user/*, /operator/*, /admin/*, /api/*
+  components/     # LiveMap, RoleShell, ModeToggle, ChatUI, ...
+  lib/
+    supabase/     # browser + server + middleware Supabase clients
+    auth.ts       # server-side current-user/role resolution
+    mode.ts       # SIMULATION/LIVE data-mode helpers
+    server/       # Kerala pincodes + in-memory report store (simulation)
+  middleware.ts   # Supabase-session role-based route protection
+backend/
+  app/            # FastAPI: config, services (supabase/telemetry/relay/mqtt-sim), api, ws
+  scripts/        # seed_users.py
+supabase/
+  migrations/     # schema + RLS + storage (run in order)
+  seed/           # pincodes + demo devices
 ```
+
 
 ## Tech
 Next.js · React · TypeScript · Tailwind CSS · Leaflet / react-leaflet · Recharts (planned).

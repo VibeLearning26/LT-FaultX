@@ -1,46 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, decodeSession } from "@/lib/session";
+import { updateSession } from "@/lib/supabase/middleware";
+import { allowedPrefix, toDbRole, type DbRole } from "@/lib/roles";
 
 /**
- * Route protection. Guards /user, /operator, /admin by role.
- * Unauthenticated users are redirected to /login; wrong-role users to their own home.
+ * Route protection backed by Supabase Auth.
+ * - Refreshes the Supabase session cookie on every request.
+ * - Guards /user, /operator, /admin by the signed-in user's role.
+ * - Unauthenticated users go to /login; wrong-role users to their own home.
+ *
+ * Role is resolved from profiles.role (source of truth), falling back to the
+ * user's metadata role if the profile row isn't readable yet.
  */
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const session = decodeSession(req.cookies.get(SESSION_COOKIE)?.value);
+  const { supabase, response, user } = await updateSession(req);
 
-  const needs = (prefix: string) => pathname === prefix || pathname.startsWith(prefix + "/");
-
+  const needs = (prefix: string) =>
+    pathname === prefix || pathname.startsWith(prefix + "/");
   const wantsUser = needs("/user");
   const wantsOperator = needs("/operator");
   const wantsAdmin = needs("/admin");
 
-  if (!wantsUser && !wantsOperator && !wantsAdmin) return NextResponse.next();
+  if (!wantsUser && !wantsOperator && !wantsAdmin) return response;
 
-  if (!session) {
+  if (!user) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  const roleOk =
-    (wantsUser && session.role === "USER") ||
-    (wantsOperator && session.role === "OPERATOR") ||
-    (wantsAdmin && session.role === "ADMIN");
+  // Resolve role: prefer the profiles table, fall back to user metadata.
+  let role: DbRole = toDbRole(
+    (user.user_metadata as { role?: string } | null)?.role,
+  );
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role) role = toDbRole(profile.role);
 
-  if (!roleOk) {
+  const allowed =
+    (wantsUser && role === "citizen") ||
+    (wantsOperator && role === "operator") ||
+    (wantsAdmin && role === "admin");
+
+  if (!allowed) {
     const url = req.nextUrl.clone();
-    url.pathname =
-      session.role === "ADMIN"
-        ? "/admin/dashboard"
-        : session.role === "OPERATOR"
-          ? "/operator"
-          : "/user";
+    url.pathname = homeForPrefix(allowedPrefix(role));
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return response;
+}
+
+function homeForPrefix(prefix: "/user" | "/operator" | "/admin"): string {
+  return prefix === "/admin" ? "/admin/dashboard" : prefix;
 }
 
 export const config = {

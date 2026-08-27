@@ -1,5 +1,5 @@
 import RoleShell from "@/components/RoleShell";
-import { getSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/auth";
 
 const nav = [
   { label: "Dashboard", href: "/operator" },
@@ -13,13 +13,13 @@ const nav = [
 ];
 
 export default async function OperatorLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const user = await getCurrentUser();
   return (
     <RoleShell
       roleLabel="Operator"
       accent="bg-status-maint"
       nav={nav}
-      userName={session?.name ?? "Operator"}
+      userName={user?.name ?? "Operator"}
     >
       {children}
     </RoleShell>

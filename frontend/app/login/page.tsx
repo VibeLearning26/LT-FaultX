@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { homeForRole, toDbRole } from "@/lib/roles";
 
 function LoginForm() {
   const router = useRouter();
@@ -16,27 +18,36 @@ function LoginForm() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    // Read straight from the form so browser autofill values are always used,
-    // even if React state didn't sync with an autofilled field.
+    // Read straight from the form so browser autofill values are always used.
     const fd = new FormData(e.currentTarget);
     const emailVal = String(fd.get("email") ?? "").trim();
     const passwordVal = String(fd.get("password") ?? "");
+
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailVal, password: passwordVal }),
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: emailVal,
+        password: passwordVal,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Login failed.");
+      if (signInError || !data.user) {
+        setError(signInError?.message ?? "Invalid credentials.");
         return;
       }
+
+      // Resolve role from profiles (source of truth), fall back to metadata.
+      let role = toDbRole((data.user.user_metadata as { role?: string })?.role);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+      if (profile?.role) role = toDbRole(profile.role);
+
       const next = params.get("next");
-      router.push(next && next.startsWith("/") ? next : data.home);
+      router.push(next && next.startsWith("/") ? next : homeForRole(role));
       router.refresh();
     } catch {
-      setError("Network error. Is the app running?");
+      setError("Network error. Is Supabase reachable?");
     } finally {
       setLoading(false);
     }
@@ -44,7 +55,7 @@ function LoginForm() {
 
   function quickFill(kind: "user" | "operator" | "admin") {
     const map = {
-      user: ["user@demo.local", "Demo@User123"],
+      user: ["citizen@demo.local", "Demo@User123"],
       operator: ["operator@demo.local", "Demo@Operator123"],
       admin: ["admin@demo.local", "Demo@Admin123"],
     } as const;
@@ -104,7 +115,7 @@ function LoginForm() {
       </form>
 
       <div className="mt-6 rounded-lg border border-brand-500/15 bg-ink-950/40 p-3 text-xs text-brand-100/50">
-        <p className="mb-2 font-semibold text-brand-100/70">Demo accounts (dev only)</p>
+        <p className="mb-2 font-semibold text-brand-100/70">Demo accounts</p>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => quickFill("user")} className="btn-ghost px-2 py-1 text-xs">
             Citizen
@@ -140,8 +151,8 @@ export default function LoginPage() {
         </Suspense>
 
         <p className="mt-6 text-center text-xs text-brand-100/40">
-          Dev mock auth — replaced by the FastAPI backend (hashed passwords + JWT) in a
-          later phase.
+          Authentication is handled by Supabase Auth. Demo users are created via
+          the backend seed script.
         </p>
       </div>
     </main>
