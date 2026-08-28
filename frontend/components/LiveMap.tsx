@@ -210,6 +210,7 @@ export default function LiveMap({
   useEffect(() => {
     let alive = true;
     const load = () => {
+      if (document.visibilityState === "hidden") return;
       fetch("/api/outage-reports")
         .then((r) => r.json())
         .then((d) => alive && setReports(d.reports ?? []))
@@ -220,7 +221,7 @@ export default function LiveMap({
         .catch(() => {});
     };
     load();
-    const t = setInterval(load, 15000);
+    const t = setInterval(load, 20000);
     return () => {
       alive = false;
       clearInterval(t);
@@ -278,7 +279,10 @@ export default function LiveMap({
   const faultPart = faultIdx > 0 ? LINE_COORDS.slice(faultIdx - 1) : [];
 
   const mapHeight = height ?? (compact ? "22rem" : "70vh");
-  const pointStep = compact ? 3 : 1;
+  // Keep the full dataset's stats, but render a representative sample of
+  // density dots. Hundreds of individual React-Leaflet layers are much
+  // cheaper to update than all 1,418 markers on every map render.
+  const pointStep = compact ? 4 : expanded ? 2 : 3;
   const heatPoints = (data?.points ?? []).filter((_, i) => i % pointStep === 0);
   const feed = (data?.feed ?? []).slice(0, compact ? 4 : 7);
 

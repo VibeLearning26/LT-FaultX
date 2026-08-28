@@ -18,7 +18,7 @@ export interface DemoUser {
 
 export const DEMO_USERS: DemoUser[] = [
   {
-    email: "user@demo.local",
+    email: "citizen@demo.local",
     password: "Demo@User123",
     role: "USER",
     name: "Demo Citizen",

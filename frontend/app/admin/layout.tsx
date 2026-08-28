@@ -10,6 +10,7 @@ const nav = [
   { label: "Operators", href: "/admin/operators" },
   { label: "Users", href: "/admin/users" },
   { label: "Nodes", href: "/admin/nodes" },
+  { label: "ESP32 Devices", href: "/admin/devices" },
   { label: "Citizen Feedback", href: "/admin/feedback" },
   { label: "Configuration", href: "/admin/settings" },
   { label: "Audit Logs", href: "/admin/audit" },

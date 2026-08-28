@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     mqtt_port: int = 1883
     relay_ack_timeout: int = 10
 
+    # ESP32 device authentication (API key for HTTP telemetry ingestion)
+    device_api_key: str = "REPLACE_WITH_DEVICE_API_KEY"
+
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.frontend_origins.split(",") if o.strip()]

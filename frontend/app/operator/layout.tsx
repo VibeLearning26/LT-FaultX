@@ -9,6 +9,7 @@ const nav = [
   { label: "Maintenance", href: "/operator/maintenance" },
   { label: "Alerts", href: "/operator/alerts" },
   { label: "Citizen Reports", href: "/operator/reports" },
+  { label: "Hardware Monitor", href: "/operator/hardware" },
   { label: "AI Assistant", href: "/operator/chat" },
 ];
 

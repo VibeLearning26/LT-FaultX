@@ -1,5 +1,7 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { toDbRole, type DbRole } from "@/lib/roles";
+import { getSession } from "@/lib/session";
 
 export interface CurrentUser {
   id: string;
@@ -12,7 +14,18 @@ export interface CurrentUser {
  * Server-side: resolve the signed-in user + role from Supabase Auth + profiles.
  * Returns null when not authenticated. Safe to call in Server Components.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  // Resolve local simulation sessions without contacting Supabase.
+  const demoSession = await getSession();
+  if (demoSession) {
+    return {
+      id: `demo:${demoSession.email}`,
+      email: demoSession.email,
+      name: demoSession.name,
+      role: toDbRole(demoSession.role),
+    };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -34,4 +47,4 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (profile?.full_name) name = profile.full_name;
 
   return { id: user.id, email: user.email ?? "", name, role };
-}
+});

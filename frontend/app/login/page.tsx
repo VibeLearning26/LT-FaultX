@@ -24,6 +24,26 @@ function LoginForm() {
     const passwordVal = String(fd.get("password") ?? "");
 
     try {
+      // Demo users are backed by the local simulation endpoint. Trying this
+      // first avoids a Supabase roundtrip and keeps the demo operator usable
+      // when that account has not been seeded into Supabase Auth.
+      if (emailVal.toLowerCase().endsWith("@demo.local")) {
+        const demoResponse = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailVal, password: passwordVal }),
+        });
+        const demoResult = await demoResponse.json();
+        if (demoResponse.ok) {
+          const next = params.get("next");
+          router.push(next && next.startsWith("/") ? next : demoResult.home);
+          router.refresh();
+          return;
+        }
+        setError(demoResult.error ?? "Invalid credentials.");
+        return;
+      }
+
       const supabase = createClient();
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: emailVal,

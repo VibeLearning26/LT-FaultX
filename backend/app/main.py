@@ -12,6 +12,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
+from app.api.esp32_routes import router as esp32_router
 from app.config import get_settings
 from app.services.mqtt_client import mqtt_client
 from app.services.supabase_service import service_key_status
@@ -39,6 +40,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(esp32_router)
 
 
 @app.get("/health")

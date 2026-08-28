@@ -6,6 +6,10 @@ import { listReports } from "@/lib/server/reports-store";
 type PinRecord = { pin: string; office: string; district: string; lat: number; lng: number };
 const DATASET = Object.values(keralaPins as Record<string, PinRecord>);
 
+// The dataset is static and the simulated statuses are deterministic. Cache
+// the expensive response briefly while keeping the map's polling responsive.
+export const revalidate = 30;
+
 function hash(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;

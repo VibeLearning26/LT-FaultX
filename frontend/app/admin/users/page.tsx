@@ -1,7 +1,7 @@
 import { PageHeader, SimBadge } from "@/components/ui";
 
 const USERS = [
-  { id: "U-1001", name: "Demo Citizen", email: "user@demo.local", role: "USER", pincode: "682001" },
+  { id: "U-1001", name: "Demo Citizen", email: "citizen@demo.local", role: "USER", pincode: "682001" },
   { id: "U-1002", name: "Demo Operator", email: "operator@demo.local", role: "OPERATOR", pincode: "682016" },
   { id: "U-1003", name: "Demo Administrator", email: "admin@demo.local", role: "ADMIN", pincode: "—" },
 ];

@@ -28,8 +28,10 @@ export default function RoleShell({
   const router = useRouter();
 
   async function logout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await Promise.allSettled([
+      fetch("/api/auth/logout", { method: "POST" }),
+      createClient().auth.signOut(),
+    ]);
     router.push("/login");
     router.refresh();
   }
