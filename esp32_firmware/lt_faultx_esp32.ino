@@ -163,15 +163,16 @@ void setup() {
   pinMode(PIN_LOAD_2, OUTPUT);
   
   // Initial relay state (CLOSED = line connected)
-  digitalWrite(PIN_RELAY, HIGH);  // Assuming active-low relay module
-  relayState = true;
+  // Relay module is active-LOW: HIGH = OFF/OPEN, LOW = ON/CLOSED
+  digitalWrite(PIN_RELAY, HIGH);  // Start with relay OPEN (safe state)
+  relayState = false;  // Track actual relay contact state: false = OPEN, true = CLOSED
   
   // Initial LED states
   digitalWrite(PIN_GREEN_LED, LOW);
   digitalWrite(PIN_RED_LED, LOW);
   digitalWrite(PIN_BUZZER, LOW);
-  digitalWrite(PIN_LOAD_1, HIGH);
-  digitalWrite(PIN_LOAD_2, HIGH);
+  digitalWrite(PIN_LOAD_1, LOW);  // Loads OFF when relay is open
+  digitalWrite(PIN_LOAD_2, LOW);
   
   // Initialize LCD
   Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
@@ -450,7 +451,7 @@ void updateLCD() {
   lcd.print("I:");
   lcd.print(filteredCurrent, 2);
   lcd.print("A R:");
-  lcd.print(relayState ? "C" : "O");
+  lcd.print(relayState ? "CLOSED" : "OPEN");
 }
 
 // ==================== COMMUNICATION ====================
