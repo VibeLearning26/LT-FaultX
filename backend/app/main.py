@@ -13,6 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
 from app.api.esp32_routes import router as esp32_router
+from app.api.line_map import router as line_map_router
+from app.api.exotel_routes import router as exotel_router
+from app.api.simulator_routes import router as simulator_router
 from app.config import get_settings
 from app.services.mqtt_client import mqtt_client
 from app.services.supabase_service import service_key_status
@@ -41,6 +44,9 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(esp32_router)
+app.include_router(line_map_router)
+app.include_router(exotel_router)
+app.include_router(simulator_router)
 
 
 @app.get("/health")
@@ -50,6 +56,24 @@ async def health():
         "hardware_mode": settings.hardware_mode,
         "ws_clients": hub.count,
         "supabase": service_key_status(),
+    }
+
+
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "message": "LT-FaultX Backend is running",
+        "endpoints": {
+            "health": "/health",
+            "esp32_telemetry": "/api/devices/{device_id}/telemetry",
+            "esp32_command": "/api/devices/{device_id}/command",
+            "esp32_config": "/api/devices/{device_id}/config",
+            "esp32_ping": "/api/devices/ping",
+            "simulator_event": "/api/simulator/event",
+            "simulator_state": "/api/simulator/state",
+            "websocket": "/ws/telemetry",
+        },
     }
 
 

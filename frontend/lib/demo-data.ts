@@ -20,12 +20,36 @@ export interface NodeRow {
   lng: number;
 }
 
+/**
+ * The one monitored site: Chelimparambu, Chemberi (PIN 670632), Kannur.
+ *
+ * Coordinates come from `lib/server/kerala-pins.json`, the same dataset that
+ * backs `/api/location/pin/[pin]`, so a pincode search for 670632 lands exactly
+ * on the network drawn here instead of a few kilometres off.
+ */
+export const SIM_SITE = {
+  pincode: "670632",
+  locality: "Chelimparambu",
+  area: "Chelimparambu, Chemberi",
+  district: "Kannur",
+  lat: 12.0006,
+  lng: 75.5262,
+};
+
+/**
+ * The monitored LT feeder at the site, ordered from the source outward.
+ *
+ * Baseline is deliberately HEALTHY: every node is online and powered, with one
+ * span flagged for scheduled maintenance. A fault only appears when the
+ * simulator (or real hardware) actually breaks the line, so the map shows
+ * "current available" until something happens.
+ */
 export const NODES: NodeRow[] = [
-  { id: "NODE_01", locality: "Fort Kochi", pincode: "682001", sequence: 1, status: "ONLINE", voltage: 230, current: 2.4, heartbeat: "OK", lastSeen: "5s ago", comm: "OK", health: "normal", lat: 9.965, lng: 76.2424 },
-  { id: "NODE_02", locality: "Mattancherry", pincode: "682002", sequence: 2, status: "ONLINE", voltage: 229, current: 2.1, heartbeat: "OK", lastSeen: "4s ago", comm: "OK", health: "normal", lat: 9.958, lng: 76.259 },
-  { id: "NODE_03", locality: "Ernakulam South", pincode: "682016", sequence: 3, status: "ONLINE", voltage: 231, current: 2.2, heartbeat: "OK", lastSeen: "3s ago", comm: "OK", health: "normal", lat: 9.967, lng: 76.287 },
-  { id: "NODE_04", locality: "Kadavanthra", pincode: "682020", sequence: 4, status: "OFFLINE", voltage: null, current: null, heartbeat: "MISSING", lastSeen: "2m ago", comm: "LOST", health: "fault", lat: 9.967, lng: 76.301 },
-  { id: "NODE_05", locality: "Vyttila", pincode: "682019", sequence: 5, status: "OFFLINE", voltage: null, current: null, heartbeat: "MISSING", lastSeen: "2m ago", comm: "LOST", health: "fault", lat: 9.968, lng: 76.318 },
+  { id: "NODE_01", locality: "Kolayad", pincode: "670650", sequence: 1, status: "ONLINE", voltage: 230, current: 2.4, heartbeat: "OK", lastSeen: "5s ago", comm: "OK", health: "maint", lat: 11.9930, lng: 75.5150 },
+  { id: "NODE_02", locality: "Chempanthotty", pincode: "670631", sequence: 2, status: "ONLINE", voltage: 229, current: 2.1, heartbeat: "OK", lastSeen: "4s ago", comm: "OK", health: "normal", lat: 11.9960, lng: 75.5200 },
+  { id: "NODE_03", locality: "Kuniyampuzha", pincode: "670632", sequence: 3, status: "ONLINE", voltage: 231, current: 2.2, heartbeat: "OK", lastSeen: "3s ago", comm: "OK", health: "normal", lat: 11.9985, lng: 75.5232 },
+  { id: "NODE_04", locality: "Chelimparambu", pincode: "670632", sequence: 4, status: "ONLINE", voltage: 230, current: 2.3, heartbeat: "OK", lastSeen: "3s ago", comm: "OK", health: "normal", lat: 12.0006, lng: 75.5262 },
+  { id: "NODE_05", locality: "Chemberi", pincode: "670632", sequence: 5, status: "ONLINE", voltage: 229, current: 2.0, heartbeat: "OK", lastSeen: "4s ago", comm: "OK", health: "normal", lat: 12.0030, lng: 75.5296 },
 ];
 
 /** Kerala geographic centre for initial map view. */
@@ -53,16 +77,16 @@ export interface OperatorGeo {
 }
 
 export const OPERATORS_GEO: OperatorGeo[] = [
-  { id: "OP-01", name: "Field Operator 01", lat: 9.9705, lng: 76.295, availability: "AVAILABLE" },
-  { id: "OP-02", name: "Field Operator 02", lat: 9.962, lng: 76.31, availability: "BUSY" },
+  { id: "OP-01", name: "Field Operator 01", lat: 11.9994, lng: 75.5240, availability: "AVAILABLE" },
+  { id: "OP-02", name: "Field Operator 02", lat: 12.0042, lng: 75.5310, availability: "BUSY" },
 ];
 
 /** Active fault geo point with configurable affected radius (metres). */
 export const FAULT_GEO = {
   faultId: "FT-00031",
   nodeId: "NODE_04",
-  lat: 9.967,
-  lng: 76.301,
+  lat: 12.0006,
+  lng: 75.5262,
   faultType: "Broken / open conductor (suspected)",
   current: 0,
   voltage: 0,
@@ -90,7 +114,7 @@ export const FAULTS: FaultRow[] = [
     status: "ACTIVE",
     detectedAt: "10:42 AM",
     segment: "NODE_03 → NODE_04",
-    location: "Kadavanthra (682020)",
+    location: "Chelimparambu (670632)",
     lastHealthy: "NODE_03",
     firstFailed: "NODE_04",
     isolation: "CONNECTED",
@@ -114,7 +138,7 @@ export const MAINTENANCE: MaintenanceJob[] = [
   {
     id: "MJ-0012",
     faultId: "FT-00031",
-    location: "Kadavanthra (682020)",
+    location: "Chelimparambu (670632)",
     faultType: "Broken conductor (suspected)",
     operator: "Demo Operator",
     priority: "HIGH",
@@ -125,7 +149,7 @@ export const MAINTENANCE: MaintenanceJob[] = [
   {
     id: "MJ-0011",
     faultId: "FT-00029",
-    location: "Vyttila (682019)",
+    location: "Chemberi (670632)",
     faultType: "Communication failure",
     operator: "Demo Operator",
     priority: "MEDIUM",
@@ -159,9 +183,9 @@ export interface CitizenReport {
 }
 
 export const REPORTS: CitizenReport[] = [
-  { id: "CR-101", pincode: "682020", locality: "Kadavanthra", electricity: "NO", description: "Power gone for ~20 minutes.", time: "10:47 AM" },
-  { id: "CR-102", pincode: "682019", locality: "Vyttila", electricity: "PARTIAL", description: "Lights flickering, low voltage.", time: "10:50 AM" },
-  { id: "CR-100", pincode: "682016", locality: "Ernakulam South", electricity: "YES", description: "Everything normal now.", time: "10:12 AM" },
+  { id: "CR-101", pincode: "670632", locality: "Chelimparambu", electricity: "NO", description: "Power gone for ~20 minutes.", time: "10:47 AM" },
+  { id: "CR-102", pincode: "670632", locality: "Chemberi", electricity: "PARTIAL", description: "Lights flickering, low voltage.", time: "10:50 AM" },
+  { id: "CR-100", pincode: "670631", locality: "Chempanthotty", electricity: "YES", description: "Everything normal now.", time: "10:12 AM" },
 ];
 
 export type PowerStatus = "AVAILABLE" | "UNAVAILABLE" | "PARTIAL" | "MAINTENANCE" | "UNKNOWN";
@@ -186,9 +210,12 @@ export interface PincodeStatus {
  * but reported as UNKNOWN (outside the monitored network).
  */
 export const MONITORED_PINCODES: Record<string, PincodeStatus> = {
-  "682001": { pincode: "682001", location: "Fort Kochi", district: "Ernakulam", status: "AVAILABLE", lastUpdated: "10:52 AM", activeFault: false, maintenance: false, estRestoration: null, lat: 9.965, lng: 76.2424, monitored: true },
-  "682002": { pincode: "682002", location: "Mattancherry", district: "Ernakulam", status: "AVAILABLE", lastUpdated: "10:51 AM", activeFault: false, maintenance: false, estRestoration: null, lat: 9.958, lng: 76.259, monitored: true },
-  "682016": { pincode: "682016", location: "Ernakulam South", district: "Ernakulam", status: "AVAILABLE", lastUpdated: "10:52 AM", activeFault: false, maintenance: false, estRestoration: null, lat: 9.967, lng: 76.287, monitored: true },
-  "682020": { pincode: "682020", location: "Kadavanthra", district: "Ernakulam", status: "UNAVAILABLE", lastUpdated: "10:47 AM", activeFault: true, maintenance: true, estRestoration: "3:30 PM", lat: 9.967, lng: 76.301, monitored: true },
-  "682019": { pincode: "682019", location: "Vyttila", district: "Ernakulam", status: "PARTIAL", lastUpdated: "10:50 AM", activeFault: false, maintenance: true, estRestoration: "1:00 PM", lat: 9.968, lng: 76.318, monitored: true },
+  // Primary monitored area — the simulator/hardware node sits here. Baseline is
+  // AVAILABLE; a live line break flips it to UNAVAILABLE on the map.
+  "670632": { pincode: "670632", location: "Chelimparambu, Chemberi", district: "Kannur", status: "AVAILABLE", lastUpdated: "10:52 AM", activeFault: false, maintenance: false, estRestoration: null, lat: 12.0006, lng: 75.5262, monitored: true },
+  "670631": { pincode: "670631", location: "Chempanthotty", district: "Kannur", status: "AVAILABLE", lastUpdated: "10:51 AM", activeFault: false, maintenance: false, estRestoration: null, lat: 11.9960, lng: 75.5200, monitored: true },
+  "670650": { pincode: "670650", location: "Kolayad", district: "Kannur", status: "MAINTENANCE", lastUpdated: "10:50 AM", activeFault: false, maintenance: true, estRestoration: "1:00 PM", lat: 11.9930, lng: 75.5150, monitored: true },
 };
+
+/** Home pincode used for the citizen dashboard's "your area" panel. */
+export const DEFAULT_PINCODE = SIM_SITE.pincode;

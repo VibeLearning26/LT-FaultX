@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SimulatorStatusCard from "@/components/SimulatorStatusCard";
 
 interface Result {
   pincode: string;
@@ -69,7 +70,7 @@ export default function CheckStatusPage() {
           value={pincode}
           onChange={(e) => setPincode(e.target.value)}
           inputMode="numeric"
-          placeholder="e.g. 682020"
+          placeholder="e.g. 670632"
           className="flex-1 rounded-lg border border-brand-500/20 bg-ink-950/60 px-3 py-2 text-brand-50 placeholder:text-brand-100/30 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
         />
         <button type="submit" className="btn-primary" disabled={loading}>
@@ -131,9 +132,16 @@ export default function CheckStatusPage() {
         </div>
       )}
 
+      <section aria-label="Prototype simulator status" className="space-y-2">
+        <h2 className="text-sm font-semibold text-brand-100/60">
+          Prototype — simulated node
+        </h2>
+        <SimulatorStatusCard audience="citizen" />
+      </section>
+
       <p className="text-xs text-brand-100/40">
         Any valid Kerala pincode resolves its locality. Monitored demo areas with live
-        status: 682001, 682002, 682016, 682019, 682020.
+        status: 670632 (Chelimparambu, Chemberi), 670631 (Chempanthotty), 670650 (Kolayad).
       </p>
     </div>
   );

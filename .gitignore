@@ -14,6 +14,16 @@ dist/
 .env*.local
 *.pem
 
+# python
+.venv/
+**/.venv/
+.venv-*/
+**/.venv-*/
+venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
 # logs
 npm-debug.log*
 yarn-debug.log*

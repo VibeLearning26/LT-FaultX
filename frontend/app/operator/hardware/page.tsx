@@ -7,7 +7,7 @@ import { useHardware } from "@/lib/hardware-context";
 const DEVICE_IDS = ["ESP32-POLE-01", "ESP32-POLE-02", "ESP32-POLE-03"];
 
 export default function OperatorHardwarePage() {
-  const { telemetry, deviceStatus, connected, relayCommands } = useHardware();
+  const { connected, relayCommands } = useHardware();
   
   return (
     <div className="space-y-6">

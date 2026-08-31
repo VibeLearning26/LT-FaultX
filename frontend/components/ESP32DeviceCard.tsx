@@ -1,15 +1,15 @@
 "use client";
 
-import { useHardware } from "@/lib/hardware-context";
+import { useHardware, useDevice } from "@/lib/hardware-context";
 import { StatusPill } from "@/components/ui";
 
 export function ESP32DeviceCard({ deviceId, title }: { deviceId: string; title?: string }) {
-  const { telemetry, deviceStatus, connected, relayCommands, sendRelayCommand } = useHardware();
+  const { telemetry, deviceStatus } = useDevice(deviceId);
+  const { connected, relayCommands, sendRelayCommand } = useHardware();
   
-  const isTargetDevice = telemetry?.device_id === deviceId || deviceStatus?.device_id === deviceId;
   const data = telemetry || deviceStatus;
   
-  if (!isTargetDevice && !data) {
+  if (!data) {
     return (
       <div className="card p-4 text-center text-brand-100/50">
         <p>No data for {deviceId}</p>
@@ -20,7 +20,7 @@ export function ESP32DeviceCard({ deviceId, title }: { deviceId: string; title?:
 
   const lineStatus = telemetry?.line_status || deviceStatus?.line_status || "UNKNOWN";
   const isHealthy = lineStatus === "HEALTHY";
-  const isFault = lineStatus === "FAULT";
+  const isFault = lineStatus === "FAULT" || telemetry?.fault === true || deviceStatus?.fault === true;
   const isIsolated = lineStatus === "ISOLATED";
   const isOnline = deviceStatus?.online ?? telemetry?.persisted ?? false;
   const commStatus = deviceStatus?.comm || (isOnline ? "OK" : "LOST");

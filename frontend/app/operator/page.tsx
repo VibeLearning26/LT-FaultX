@@ -7,25 +7,20 @@ import { StatusPill } from "@/components/ui";
 const DEVICE_IDS = ["ESP32-POLE-01", "ESP32-POLE-02", "ESP32-POLE-03"];
 
 export default function OperatorDashboard() {
-  const { telemetry, deviceStatus, connected, relayCommands } = useHardware();
+  const { telemetryByDevice, statusByDevice, connected, connectionError, relayCommands } = useHardware();
   
-  // Compute summary metrics from live data
-  const allDevices = [...new Set([
-    ...(telemetry ? [telemetry.device_id] : []),
-    ...(deviceStatus ? [deviceStatus.device_id] : []),
-    ...relayCommands.map(c => c.device_ref),
-    ...DEVICE_IDS,
-  ])];
+  const allDevices = DEVICE_IDS;
   
   const onlineDevices = allDevices.filter(id => {
-    const status = deviceStatus?.device_id === id ? deviceStatus : null;
-    const t = telemetry?.device_id === id ? telemetry : null;
+    const status = statusByDevice[id];
+    const t = telemetryByDevice[id];
     return status?.online || t?.persisted;
   });
   
   const faultDevices = allDevices.filter(id => {
-    const t = telemetry?.device_id === id ? telemetry : null;
-    return t?.fault || t?.line_status === "FAULT";
+    const t = telemetryByDevice[id];
+    const status = statusByDevice[id];
+    return t?.fault || t?.line_status === "FAULT" || status?.fault;
   });
 
   return (
@@ -41,6 +36,14 @@ export default function OperatorDashboard() {
           <StatusPill kind={connected ? "normal" : "fault"} label={connected ? "Backend Connected" : "Backend Disconnected"} />
         </div>
       </div>
+
+      {connectionError && (
+        <div className="rounded-lg border border-status-fault/40 bg-status-fault/10 px-4 py-3 text-sm text-status-fault">
+          <p className="font-semibold">Connection Error</p>
+          <p className="mt-1">{connectionError}</p>
+          <p className="mt-2 text-xs">Start the backend: <code className="rounded bg-ink-950/60 px-1.5 py-0.5">cd backend && uvicorn app.main:app --reload</code></p>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Devices Online" value={`${onlineDevices.length} / ${allDevices.length}`} tone={onlineDevices.length === allDevices.length ? "normal" : "fault"} note="ESP32 poles" />

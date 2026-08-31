@@ -94,3 +94,80 @@ class ESP32CommandAckIn(BaseModel):
     status: str = Field(..., description="ACKNOWLEDGED | EXECUTED | FAILED")
     result_state: Optional[bool] = None
     message: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Fault Simulator (software-only). Events are tagged source=SIMULATOR so they
+# are always distinguishable from REAL_HARDWARE events, while still traversing
+# the same detection/notification pipeline.
+# ---------------------------------------------------------------------------
+
+class SimulatorGeo(BaseModel):
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+
+
+class SimulatorEventIn(BaseModel):
+    """Fault/recovery event emitted by the /Simulator scene."""
+
+    source: str = Field("SIMULATOR", pattern="^SIMULATOR$")
+    device_id: Optional[str] = Field(None, min_length=1, max_length=64)
+    event: str = Field(
+        ...,
+        pattern="^(LINE_BREAK|FUSE_FAILURE|PERSON_CONTACT|RESET)$",
+        description="LINE_BREAK | FUSE_FAILURE | PERSON_CONTACT | RESET",
+    )
+    status: Optional[str] = Field(None, pattern="^(FAULT|NORMAL)$")
+    timestamp: Optional[datetime] = None
+    location: Optional[SimulatorGeo] = None
+    note: Optional[str] = Field(None, max_length=280)
+
+
+class SimulatorLogEntry(BaseModel):
+    at: str
+    stage: str = Field(..., description="DETECTION | PROCESSING | AUTOMATION | NOTIFICATION | RECOVERY")
+    message: str
+    detail: Optional[str] = None
+
+
+class SimulatorPort(BaseModel):
+    """A feeder port on the simulated node."""
+
+    id: str
+    role: str = Field(..., description="PRIMARY | BACKUP")
+    status: str = Field(..., description="HEALTHY | FAULT | CARRYING | STANDBY")
+    energised: bool
+    carrying: bool
+    load_pct: int = Field(0, ge=0, le=100)
+
+
+class SimulatorStateOut(BaseModel):
+    source: str = "SIMULATOR"
+    state: str = Field(..., description="SYSTEM_NORMAL | FAULT_TRIGGERED | LINE_BROKEN | PERSON_SHOCKED | FAULT_ACTIVE | LINE_REGENERATED")
+    device_id: str
+    line_connected: bool
+    fuse_ok: bool
+    person_shocked: bool
+    fault_active: bool
+    fault_id: Optional[str] = None
+    fault_type: Optional[str] = None
+    fault_status: Optional[str] = None
+    detected_at: Optional[str] = None
+    resolved_at: Optional[str] = None
+    latitude: float
+    longitude: float
+    pincode: str
+    area: str
+    pole: str
+    operator_id: Optional[str] = None
+    operator_name: Optional[str] = None
+    operator_notified: bool = False
+    users_notified: int = 0
+    emergency_status: str = "NONE"
+    emergency_service: Optional[str] = None
+    map_marker_status: str = "NORMAL"
+    notifications_configured: bool = False
+    ports: list[SimulatorPort] = Field(default_factory=list)
+    active_port: Optional[str] = None
+    rerouted: bool = False
+    log: list[SimulatorLogEntry] = Field(default_factory=list)

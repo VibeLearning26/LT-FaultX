@@ -31,7 +31,22 @@ export interface RelayCommandEvent {
   persisted?: boolean;
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_BACKEND_WS_URL || "ws://localhost:8000/ws/telemetry";
+/**
+ * WebSocket URL.
+ *
+ * Derived from NEXT_PUBLIC_BACKEND_URL when the explicit WS var is unset, so a
+ * deployed frontend never silently falls back to ws://localhost:8000 — and so
+ * an https backend gets wss (a browser blocks insecure ws from an https page).
+ */
+function resolveWsUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_BACKEND_WS_URL;
+  if (explicit) return explicit;
+  const http = process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (http) return `${http.replace(/^http/, "ws").replace(/\/$/, "")}/ws/telemetry`;
+  return "ws://localhost:8000/ws/telemetry";
+}
+
+const WS_URL = resolveWsUrl();
 
 export function useHardwareWebSocket(deviceId?: string) {
   const wsRef = useRef<WebSocket | null>(null);

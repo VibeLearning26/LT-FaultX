@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from pydantic import BaseModel
 
 from app.config import get_settings
-from app.models import ESP32TelemetryIn, ESP32CommandOut, ESP32CommandAckIn
+from app.models import ESP32TelemetryIn, ESP32CommandOut, ESP32CommandAckIn, TelemetryIn
 from app.services.supabase_service import (
     SupabaseUnavailable,
     get_client,
@@ -41,6 +41,18 @@ async def verify_device_api_key(
     return x_device_api_key
 
 
+@router.get("/ping")
+async def esp32_ping():
+    """Simple connectivity test for ESP32. No auth required."""
+    return {"status": "ok", "message": "Backend is reachable", "time": datetime.now(timezone.utc).isoformat()}
+
+
+@router.get("/{device_id}/telemetry")
+async def esp32_telemetry_get(device_id: str):
+    """Allow GET for connectivity testing (no auth)."""
+    return {"status": "ok", "device_id": device_id, "message": "Use POST to send telemetry"}
+
+
 @router.post("/{device_id}/telemetry")
 async def esp32_telemetry(
     device_id: str,
@@ -61,7 +73,7 @@ async def esp32_telemetry(
         )
     
     # Convert ESP32 telemetry format to internal TelemetryIn format
-    internal_payload = ESP32TelemetryIn(
+    internal_payload = TelemetryIn(
         device_id=device_id,
         timestamp=payload.timestamp,
         voltage=payload.voltage_post_2,

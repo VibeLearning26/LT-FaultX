@@ -78,6 +78,9 @@ export default function HomePage() {
           </div>
         </div>
         <nav className="flex items-center gap-2">
+          <Link href="/simulator" className="btn-ghost text-sm">
+            Fault Simulator
+          </Link>
           <Link href="/user/check-status" className="btn-ghost text-sm">
             Check Power
           </Link>
@@ -181,43 +184,31 @@ export default function HomePage() {
         <div className="mb-8 text-center">
           <span className="pill pill-info mb-3">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
-            Live Kerala status
+            Live network status
           </span>
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Two views of the network
+            The monitored corridor
           </h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-brand-100/55">
-            Power availability by locality, and active line faults & maintenance — side by side.
+            Power availability, active line faults and maintenance for the monitored
+            Ernakulam network — one localized view.
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Map 1: availability */}
+        <div className="grid gap-6">
           <div className="card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="font-semibold text-brand-100/90">Power availability</p>
-              <div className="flex gap-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="font-semibold text-brand-100/90">
+                Availability, faults &amp; maintenance
+              </p>
+              <div className="flex flex-wrap gap-2">
                 <span className="pill pill-normal">
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
                   Current available
                 </span>
                 <span className="pill pill-fault">
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
-                  No current
-                </span>
-              </div>
-            </div>
-            <LiveMapLoader role="USER" variant="availability" compact height="24rem" />
-          </div>
-
-          {/* Map 2: faults & maintenance */}
-          <div className="card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="font-semibold text-brand-100/90">Faults & maintenance</p>
-              <div className="flex gap-2">
-                <span className="pill pill-fault">
-                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
-                  Line fault
+                  Line fault / no current
                 </span>
                 <span className="pill pill-maint">
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -225,7 +216,7 @@ export default function HomePage() {
                 </span>
               </div>
             </div>
-            <LiveMapLoader role="USER" variant="operations" compact height="24rem" />
+            <LiveMapLoader role="USER" variant="operations" compact height="26rem" />
           </div>
         </div>
         <p className="mt-3 text-center text-xs text-brand-100/40">

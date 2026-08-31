@@ -1,0 +1,64 @@
+# Render blueprint — deploys the FastAPI backend from this repo.
+#
+# Render's free web service sleeps after ~15 minutes idle and takes ~50s to
+# wake, which is fine for a demo. Keep it awake during a live demo by hitting
+# /health, or upgrade the plan.
+#
+# Every secret below is `sync: false`: Render will prompt for it on first
+# deploy and store it encrypted. Nothing sensitive is committed to git.
+services:
+  - type: web
+    name: ltfx-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+
+      # Comma-separated list of allowed browser origins. MUST include the
+      # Vercel URL of the frontend, or every REST call fails CORS.
+      - key: FRONTEND_ORIGINS
+        sync: false
+
+      # Public HTTPS URL of THIS service, e.g. https://ltfx-backend.onrender.com
+      # Exotel fetches the spoken voice script from here, so it cannot be
+      # localhost. Set it after the first deploy, once Render assigns the URL.
+      - key: BASE_URL
+        sync: false
+
+      # Supabase (service-role key is server-only — never expose to a browser)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # Exotel telephony
+      - key: EXOTEL_API_KEY
+        sync: false
+      - key: EXOTEL_API_TOKEN
+        sync: false
+      - key: EXOTEL_ACCOUNT_SID
+        sync: false
+      - key: EXOTEL_CALLER_ID
+        sync: false
+
+      # Escalation recipients (E.164, e.g. +919XXXXXXXXX).
+      # On an Exotel trial account only KYC-verified numbers can be dialled.
+      - key: SIMULATOR_OPERATOR_PHONE
+        sync: false
+      - key: SIMULATOR_AFFECTED_USER_PHONES
+        sync: false
+      - key: EMERGENCY_SERVICE_NAME
+        sync: false
+      - key: EMERGENCY_SERVICE_PHONE
+        sync: false
+
+      - key: DEVICE_API_KEY
+        sync: false
+      - key: HARDWARE_MODE
+        value: simulation
